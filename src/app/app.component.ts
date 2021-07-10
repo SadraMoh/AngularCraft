@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core';
 import * as THREE from 'three';
 import { GUI } from "dat.gui";
+import { EngineService } from './engine/engine.service';
 
 @Component({
   selector: 'app-root',
@@ -9,113 +10,78 @@ import { GUI } from "dat.gui";
 })
 export class AppComponent implements AfterViewInit {
 
-  @ViewChild('scene')
-  public readonly scene!: ElementRef<HTMLCanvasElement>;
-  public canvas!: HTMLCanvasElement;
+  @ViewChild('canvasRef')
+  public readonly canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  constructor() {
+  constructor(private engine: EngineService) {
 
   }
 
   ngAfterViewInit(): void {
 
-    // Canvas
-    this.canvas = this.scene.nativeElement;
-
-    // Debug
-    const gui = new GUI()
-
-    // Scene
-    const scene = new THREE.Scene()
+    // Initialize Canvas
+    this.engine.initCanvas(this.canvasRef.nativeElement);
 
     // Objects
-    const geometry = new THREE.TorusGeometry(.7, .2, 16, 100);
+    // const geometry = new THREE.TorusGeometry(.7, .2, 16, 100);
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
 
     // Materials
 
     const material = new THREE.MeshBasicMaterial()
-    material.color = new THREE.Color(0xff0000)
+    material.color = new THREE.Color(0xee2255)
 
     // Mesh
     const sphere = new THREE.Mesh(geometry, material)
-    scene.add(sphere)
+    this.engine.scene.add(sphere)
 
     // Lights
 
-    const pointLight = new THREE.PointLight(0xffffff, 0.1)
-    pointLight.position.x = 2
-    pointLight.position.y = 3
-    pointLight.position.z = 4
-    scene.add(pointLight)
+    const light = new THREE.PointLight(0xffffff, 1, 100);
+    light.position.set(50, 50, 50);
+    this.engine.scene.add(light)
 
-    /**
-     * Sizes
-     */
-    const sizes = {
-      width: window.innerWidth,
-      height: window.innerHeight
+    const sphereSize = 1;
+    const pointLightHelper = new THREE.PointLightHelper(light, sphereSize);
+    this.engine.scene.add(pointLightHelper);
+
+    // Floor 
+
+    const floorGeometry = new THREE.PlaneGeometry(2, 2);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x555555, side: THREE.DoubleSide });
+    const plane = new THREE.Mesh(floorGeometry, floorMaterial);
+    this.engine.scene.add(plane);
+
+
+    const controls = {
+      lightX: 2,
+      lightY: 3,
+      lightZ: 4,
     }
 
-    window.addEventListener('resize', () => {
-      // Update sizes
-      sizes.width = window.innerWidth
-      sizes.height = window.innerHeight
+    this.engine.gui.add(controls, 'lightX', -10, +10);
+    this.engine.gui.add(controls, 'lightY', -10, +10);
+    this.engine.gui.add(controls, 'lightZ', -10, +10);
 
-      // Update camera
-      camera.aspect = sizes.width / sizes.height
-      camera.updateProjectionMatrix()
+    floorGeometry.rotateX(Math.PI / 2)
 
-      // Update renderer
-      renderer.setSize(sizes.width, sizes.height)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    })
-
-    /**
-     * Camera
-     */
-    // Base camera
-    const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-    camera.position.x = 0
-    camera.position.y = 0
-    camera.position.z = 2
-    scene.add(camera)
 
     // Controls
     // const controls = new OrbitControls(camera, canvas)
     // controls.enableDamping = true
 
-    /**
-     * Renderer
-     */
-    const renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas
-    })
-    renderer.setSize(sizes.width, sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-    /**
-     * Animate
-     */
+    // Update objects
+    this.engine.tick.subscribe((elapsedTime) => { sphere.rotation.y = .5 * elapsedTime })
+    this.engine.tick.subscribe((elapsedTime) => { sphere.position.y = Math.sin(elapsedTime * 2) / 2 })
 
-    const clock = new THREE.Clock()
+    
 
-    const tick = () => {
+    // this.engine.tick.subscribe((elapsedTime) => { sphere.position.y = Math.pow((elapsedTime - 3) - 1, 2) })
+    // this.engine.tick.subscribe((x) => { sphere.position.y = Math.sqrt((x + 3) * (x - 3)) })
 
-      const elapsedTime = clock.getElapsedTime()
-
-      // Update objects
-      sphere.rotation.y = .5 * elapsedTime
-
-      // Update Orbital Controls
-      // controls.update()
-
-      // Render
-      renderer.render(scene, camera)
-
-      // Call tick again on the next frame
-      window.requestAnimationFrame(tick)
-    }
-
-    tick()
   }
+
+
+
 }
