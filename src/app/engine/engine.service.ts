@@ -2,11 +2,18 @@ import { EventEmitter, HostListener, Injectable } from '@angular/core';
 import { GUI } from 'dat.gui';
 import { fromEvent, Observable } from 'rxjs';
 import * as THREE from 'three';
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls';
+import { Block } from '../models/block';
+import { Chunk, ChunkHeight, ChunkSize } from '../models/chunk';
+import { Renderable } from '../models/renderable';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EngineService {
+
+  /** World Map */
+  map: Chunk[][] = [];
 
   /**
    * Sizes
@@ -65,10 +72,23 @@ export class EngineService {
     this.camera.rotateX(Math.PI / -8)
     this.scene.add(this.camera)
 
+
+    // FLY CONTROLS the camera is given as the first argument, and
+    // the DOM element must now be given as a second argument
+
+
+    let flyControls = new FlyControls(this.camera, this.canvas);
+    flyControls.dragToLook = true;
+    flyControls.movementSpeed = 10;
+    flyControls.rollSpeed = 1;
+
     // start timer
     this.clock.start();
 
     let number = 0;
+
+    let lt = new Date();
+
     const ticked = () => {
       // Update Orbital Controls
       // controls.update()
@@ -78,9 +98,13 @@ export class EngineService {
       // Announce that a tick has passed
       this.tick.emit(elapsedTime);
 
+      // Update controls
+      flyControls.update(0.01);
+
+
       // Render
       this.renderer.render(this.scene, this.camera)
-      
+
       // Call tick again on the next frame
       window.requestAnimationFrame(ticked);
     }
@@ -104,6 +128,42 @@ export class EngineService {
 
   }
 
+  renderChunk(chunk: Chunk) {
+
+    for (const x of chunk.blockdata) {
+      for (const y of x) {
+        for (const block of y) {
+          block.mesh.position.x = Math.floor(Math.random() * 16);
+          block.mesh.position.y = Math.floor(Math.random() * 256);
+          block.mesh.position.z = Math.floor(Math.random() * 16);
+          this.scene.add(block.mesh);
+        }
+      }
+    }
+
+    // for (let x = 0; x < ChunkSize; x++) {
+    //   for (let y = 0; y < ChunkHeight; y++) {
+    //     for (let z = 0; z < ChunkSize; z++) {
+
+    //       const block = chunk.blockdata[x][y][z];
+
+    //       block.mesh.position.x = x;
+    //       block.mesh.position.y = 0;
+    //       block.mesh.position.z = z;
+
+    //       block.isRendered = true;
+
+    //       this.scene.add(block.mesh);
+
+
+    //     }
+    //   }
+    // }
+
+    console.log('rendered')
+
+
+  }
 
 
 
