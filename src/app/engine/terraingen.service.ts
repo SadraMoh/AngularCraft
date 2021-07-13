@@ -10,26 +10,60 @@ export class TerraingenService {
 
   constructor(protected engine: EngineService) { }
 
-  GenerateFlat(): Block[][][] {
+  GenerateFlat(): Block[] {
 
-    const ans: Block[][][] = new Array(ChunkSize).fill(new Array(ChunkHeight).fill(new Array(ChunkSize).fill(undefined)));
-
-
-    const y = ChunkHeight / 2;
+    const ans: Block[] = [];
 
     for (let x = 0; x < ChunkSize; x++) {
       for (let z = 0; z < ChunkSize; z++) {
-        ans[x][y][z] = new Block(this.engine);
+        const block = new Block(this.engine);
+        block.x = x;
+        block.y = 0;
+        block.z = z;
+        ans.push(block);
       }
     }
-    
-    // for (let x = 0; x < 2; x++) {
-    //   for (let z = 0; z < 2; z++) {
-    //     ans[x][5][z] = new Block(this.engine);
-    //   }
-    // }
-    
 
     return ans;
   }
+
+  GenerateRandom(): Block[] {
+
+    const ans: Block[] = [];
+
+    for (let x = 0; x < ChunkSize; x++) {
+      for (let z = 0; z < ChunkSize; z++) {
+        const r = Math.round(Math.random() * 8);
+
+        for (let y = 0; y < r; y++) {
+          const block = new Block(this.engine);
+          block.x = x;
+          block.y = y;
+          block.z = z;
+          ans.push(block);
+        }
+      }
+    }
+
+    return ans;
+  }
+
+  GenerateHilly(): Block[] {
+
+    const ans: Block[] = [];
+
+    for (let x = 0; x < ChunkSize; x++) {
+      for (let z = 0; z < ChunkSize; z++) {
+
+        const block = new Block(this.engine);
+        block.x = x;
+        block.y = Math.sin(z + x);
+        block.z = z;
+        ans.push(block);
+      }
+    }
+
+    return ans;
+  }
+
 }

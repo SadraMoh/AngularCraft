@@ -130,38 +130,22 @@ export class EngineService {
 
   renderChunk(chunk: Chunk) {
 
-    for (const x of chunk.blockdata) {
-      for (const y of x) {
-        for (const block of y) {
-          block.mesh.position.x = Math.floor(Math.random() * 16);
-          block.mesh.position.y = Math.floor(Math.random() * 256);
-          block.mesh.position.z = Math.floor(Math.random() * 16);
-          this.scene.add(block.mesh);
-        }
-      }
-    }
-
-    // for (let x = 0; x < ChunkSize; x++) {
-    //   for (let y = 0; y < ChunkHeight; y++) {
-    //     for (let z = 0; z < ChunkSize; z++) {
-
-    //       const block = chunk.blockdata[x][y][z];
-
-    //       block.mesh.position.x = x;
-    //       block.mesh.position.y = 0;
-    //       block.mesh.position.z = z;
-
-    //       block.isRendered = true;
-
+    // for (const x of chunk.blockdata) {
+    //   for (const y of x) {
+    //     for (const block of y) {
+    //       block.mesh.position.x = Math.floor(Math.random() * 16);
+    //       block.mesh.position.y = Math.floor(Math.random() * 256);
+    //       block.mesh.position.z = Math.floor(Math.random() * 16);
     //       this.scene.add(block.mesh);
-
-
     //     }
     //   }
     // }
 
-    console.log('rendered')
+    for (const block of chunk.blocks) {
+      this.scene.add(block.mesh);
+    }
 
+    console.log('rendered')
 
   }
 

@@ -24,11 +24,18 @@ export class AppComponent implements AfterViewInit {
     // Initialize Canvas
     this.engine.initCanvas(this.canvasRef.nativeElement);
 
-    const blocks = this.terrainge.GenerateFlat();
 
-    let chunk = new Chunk(blocks, new THREE.Vector2(0, 0));
+    const chunks = [];
+    for (let x = -1; x < 1; x++) {
+      for (let z = -1; z < 1; z++) {
+        const blocks = this.terrainge.GenerateHilly();
+        chunks.push(new Chunk(blocks, new THREE.Vector2(x, z)));
+      }
+    }
 
-    this.engine.renderChunk(chunk);
+    for (const chunk of chunks) {
+      this.engine.renderChunk(chunk);
+    }
 
     // // Objects
     // // const geometry = new THREE.TorusGeometry(.7, .2, 16, 100);

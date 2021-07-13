@@ -5,7 +5,35 @@ import { Renderable } from "./renderable";
 export class Block extends Renderable {
 
     name: string = 'block';
-    uuid: string = this.generateUUID();
+    uuid: string = '';
+
+    //#region Position
+
+    public set x(v: number) {
+        this.mesh.position.x = v;
+    }
+
+    public get x(): number {
+        return this.mesh.position.x
+    }
+
+    public set y(v: number) {
+        this.mesh.position.y = v;
+    }
+
+    public get y(): number {
+        return this.mesh.position.y;
+    }
+
+    public set z(v: number) {
+        this.mesh.position.z = v;
+    }
+
+    public get z(): number {
+        return this.mesh.position.z;
+    }
+
+    //#endregion
 
     public set geometry(v: THREE.BoxGeometry) {
         this.mesh.geometry = v;
