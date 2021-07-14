@@ -26,8 +26,8 @@ export class AppComponent implements AfterViewInit {
 
 
     const chunks = [];
-    for (let x = -1; x < 1; x++) {
-      for (let z = -1; z < 1; z++) {
+    for (let x = -2; x < 2; x++) {
+      for (let z = -2; z < 2; z++) {
         const blocks = this.terrainge.GenerateHilly();
         chunks.push(new Chunk(blocks, new THREE.Vector2(x, z)));
       }
