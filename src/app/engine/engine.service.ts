@@ -29,12 +29,24 @@ export class EngineService {
   /** When the canvas element is initialized */
   public canvasViewInit: EventEmitter<HTMLCanvasElement> = new EventEmitter<HTMLCanvasElement>();
 
-  private canvas!: HTMLCanvasElement;
+  public canvas!: HTMLCanvasElement;
+
+  public sun: THREE.PointLight = new THREE.PointLight(0xff0000, 10, 0);
 
   public initCanvas(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvasInitialized();
     this.canvasViewInit.emit(this.canvas);
+
+
+    this.sun.position.set(0, 10, 0);
+    this.sun.castShadow = true;
+    this.scene.add(this.sun);
+
+    const pointLightHelper = new THREE.PointLightHelper(this.sun, 1);
+    this.scene.add(pointLightHelper);
+
+
   }
 
   //#endregion Canvas
@@ -67,7 +79,7 @@ export class EngineService {
 
     this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 100)
     this.camera.position.x = 0
-    this.camera.position.y = 1
+    this.camera.position.y = 10
     this.camera.position.z = 2
     this.camera.rotateX(Math.PI / -8)
     this.scene.add(this.camera)
@@ -79,7 +91,7 @@ export class EngineService {
 
     let flyControls = new FlyControls(this.camera, this.canvas);
     flyControls.dragToLook = true;
-    flyControls.movementSpeed = 10;
+    flyControls.movementSpeed = 25;
     flyControls.rollSpeed = 1;
 
     // start timer

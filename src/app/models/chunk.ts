@@ -18,8 +18,7 @@ export class Chunk {
         this.type = type;
         this.coordinations = coordinations;
 
-        // -4 -3 -2 -1 0 1 2 3 4
-        
+        // -4 -3 -2 -1 1 2 3 4 <--
         // Add by one if zero or more
         if (coordinations.x >= 0) {
             for (const block of blocks) {

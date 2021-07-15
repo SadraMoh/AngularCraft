@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { ElementRef, Injectable, ViewChild } from '@angular/core';
 import { Block } from '../models/block';
 import { ChunkHeight, ChunkSize } from '../models/chunk';
 import { EngineService } from './engine.service';
@@ -34,10 +34,6 @@ export class TerraingenService {
 
     const ans: Block[] = [];
 
-    const perlin = require('perlin-noise');
-
-    perlin.generatePerlinNoise(480, 480);
-
     for (let x = 0; x < ChunkSize; x++) {
       for (let z = 0; z < ChunkSize; z++) {
         const r = Math.round(Math.random() * 8);
@@ -55,27 +51,27 @@ export class TerraingenService {
     return ans;
   }
 
+  perlin = require('perlin-noise');
+
   GenerateHilly(): Block[] {
 
     const ans: Block[] = [];
+    
+    const noise = this.perlin.generatePerlinNoise(ChunkSize, ChunkSize);
 
-    const perlin = require('perlin-noise');
+    for (let x = 0; x < ChunkSize; x++) {
+      for (let z = 0; z < ChunkSize; z++) {
 
-    const e = perlin.generatePerlinNoise(480, 480);
+        const n = noise[(x+1) * (z+1)];
 
-    console.log(e)
+        const block = new Block(this.engine);
+        block.x = x;
+        block.y = Math.round(n * 5);
+        block.z = z;
 
-    // for (let x = 0; x < ChunkSize; x++) {
-    //   for (let z = 0; z < ChunkSize; z++) {
-
-    //     const block = new Block(this.engine);
-    //     block.x = x;
-    //     block.y = perlin.;
-    //     block.z = z;
-
-    //     ans.push(block);
-    //   }
-    // }
+        ans.push(block);
+      }
+    }
 
     return ans;
 

@@ -51,13 +51,14 @@ export class Block extends Renderable {
         return this.mesh.material as THREE.Material | THREE.Material[];
     }
 
-    constructor(protected engine: EngineService, material: THREE.Material = new THREE.MeshBasicMaterial({ color: Math.floor(Math.random() * 16777216) })) {
+    constructor(protected engine: EngineService, material: THREE.Material = new THREE.MeshStandardMaterial({ color: 0x119933 /** Math.floor(Math.random() * 16777216) */ })) {
         super(engine);
 
         this.geometry = new THREE.BoxGeometry(1, 1, 1);
         this.mesh.material = material;
-
-
+        this.mesh.castShadow = true;
+        this.mesh.receiveShadow = true;
+        
     }
 
     generateUUID(): string {
