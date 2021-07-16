@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { GUI } from "dat.gui";
 import { EngineService } from './engine/engine.service';
 import { TerraingenService } from './engine/terraingen.service';
-import { Chunk } from './models/chunk';
+import { Chunk, ChunkSize } from './models/chunk';
+import { Block } from './models/block';
 
 @Component({
   selector: 'app-root',
@@ -14,8 +15,8 @@ export class AppComponent implements AfterViewInit {
 
   @ViewChild('canvasRef')
   public readonly canvasRef!: ElementRef<HTMLCanvasElement>;
-  
-  constructor(private engine: EngineService, private terrainge: TerraingenService) {
+
+  constructor(private engine: EngineService, private terraingen: TerraingenService) {
 
   }
 
@@ -25,17 +26,32 @@ export class AppComponent implements AfterViewInit {
     this.engine.initCanvas(this.canvasRef.nativeElement);
 
 
-    const chunks = [];
-    for (let x = -1; x < 1; x++) {
-      for (let z = -1; z < 1; z++) {
-        const blocks = this.terrainge.GenerateHilly();
-        chunks.push(new Chunk(blocks, new THREE.Vector2(x, z)));
+    for (let x = 0; x < 2; x++) {
+      for (let y = 0; y < 2; y++) {
+        const chunk = new Chunk(this.terraingen.GenerateSine(x,y), new THREE.Vector2(0, 0));
+        chunk.render();
       }
     }
 
-    for (const chunk of chunks) {
-      this.engine.renderChunk(chunk);
-    }
+
+    // for (const block of ans) {
+    //   this.engine.scene.add(block.mesh);
+    // }
+
+    //-
+
+    // const chunks: Chunk[] = [];
+
+    // for (let x = -1; x < 1; x++) {
+    //   for (let z = -1; z < 1; z++) {
+    //     const blocks = this.terraingen.GenerateMountany(x, z);
+    //     chunks.push(new Chunk(blocks, new THREE.Vector2(x, z)));
+    //   }
+    // }
+
+    // for (const chunk of chunks) {
+    //   this.engine.renderChunk(chunk);
+    // }
 
     // // Objects
     // // const geometry = new THREE.TorusGeometry(.7, .2, 16, 100);

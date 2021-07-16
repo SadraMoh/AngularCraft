@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import { EngineService } from "../engine/engine.service";
+import { Chunk } from "./chunk";
 import { Renderable } from "./renderable";
 
 export class Block extends Renderable {
 
     name: string = 'block';
     uuid: string = '';
+
+    chunk!: Chunk | undefined;
 
     //#region Position
 
@@ -58,7 +61,7 @@ export class Block extends Renderable {
         this.mesh.material = material;
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
-        
+
     }
 
     generateUUID(): string {
@@ -66,6 +69,20 @@ export class Block extends Renderable {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
+    }
+
+    /**
+     * Render this block to the scene
+     */
+    render(): void {
+        this.engine.scene.add(this.mesh);
+    }
+
+    /**
+     * Remove this block from the scene
+     */
+    hide(): void {
+        this.engine.scene.remove(this.mesh);
     }
 
 }

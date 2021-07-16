@@ -3,6 +3,7 @@ import { GUI } from 'dat.gui';
 import { fromEvent, Observable } from 'rxjs';
 import * as THREE from 'three';
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Block } from '../models/block';
 import { Chunk, ChunkHeight, ChunkSize } from '../models/chunk';
 import { Renderable } from '../models/renderable';
@@ -12,8 +13,53 @@ import { Renderable } from '../models/renderable';
 })
 export class EngineService {
 
-  /** World Map */
-  map: Chunk[][] = [];
+  //#region voxels
+
+  /** World Map (X,Y) */
+  world: Chunk[][] = [];
+
+  /**
+   * Get block by it's position
+   * @param x global coordination of X 
+   * @param y global coordination of Y 
+   * @param z global coordination of Z
+   * @returns The requested block if one is found, {@link null}  if no block was present at the specified location
+   * @throws {@link TypeError} is thrown if the specified index out of range
+   *  */
+  getBlock(x: number, y: number, z: number): Block | null {
+
+    // integer division of X
+    const chunkX = Math.floor(x / ChunkSize);
+    const blockX = x % ChunkSize;
+
+    // ingeter division of Y
+    const chunkY = Math.floor(y / ChunkSize);
+    const blockY = y % ChunkSize;
+
+    return this.world[chunkX][chunkY].getBlock(blockX, blockY, z);
+  }
+
+  /**
+   * Set a block inside it's apropriate chunk
+   * @param x global coordination of X 
+   * @param y global coordination of Y 
+   * @param z global coordination of Z
+   * @throws {@link TypeError} is thrown if the specified index out of range
+   *  */
+  setBlock(x: number, y: number, z: number, block: Block): void {
+
+    // integer division of X
+    const chunkX = Math.floor(x / ChunkSize);
+    const blockX = x % ChunkSize;
+
+    // ingeter division of Y
+    const chunkY = Math.floor(y / ChunkSize);
+    const blockY = y % ChunkSize;
+
+    this.world[chunkX][chunkY].setBlock(blockX, blockY, z, block);
+  }
+
+  //#endregion
 
   /**
    * Sizes
@@ -31,21 +77,17 @@ export class EngineService {
 
   public canvas!: HTMLCanvasElement;
 
-  public sun: THREE.PointLight = new THREE.PointLight(0xff0000, 10, 0);
+  public sun: THREE.DirectionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
 
   public initCanvas(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvasInitialized();
     this.canvasViewInit.emit(this.canvas);
 
+    this.scene.background = new THREE.Color('lightblue');
 
-    this.sun.position.set(0, 10, 0);
-    this.sun.castShadow = true;
+    this.sun.position.set(-1, 2, 4);
     this.scene.add(this.sun);
-
-    const pointLightHelper = new THREE.PointLightHelper(this.sun, 1);
-    this.scene.add(pointLightHelper);
-
 
   }
 
@@ -87,12 +129,16 @@ export class EngineService {
 
     // FLY CONTROLS the camera is given as the first argument, and
     // the DOM element must now be given as a second argument
+    // let flyControls = new FlyControls(this.camera, this.canvas);
+    // flyControls.dragToLook = true;
+    // flyControls.movementSpeed = 25;
+    // flyControls.rollSpeed = 1;
 
-
-    let flyControls = new FlyControls(this.camera, this.canvas);
-    flyControls.dragToLook = true;
-    flyControls.movementSpeed = 25;
-    flyControls.rollSpeed = 1;
+    const controls = new OrbitControls(this.camera, this.canvas);
+    // target should be at the center of the scene
+    controls.target.set(ChunkSize / 2, ChunkSize / 4, ChunkSize / 2);
+    controls.zoomSpeed = 4;
+    controls.update();
 
     // start timer
     this.clock.start();
@@ -111,7 +157,8 @@ export class EngineService {
       this.tick.emit(elapsedTime);
 
       // Update controls
-      flyControls.update(0.01);
+      // flyControls.update(0.01);
+      controls.update();
 
 
       // Render
@@ -142,20 +189,22 @@ export class EngineService {
 
   renderChunk(chunk: Chunk) {
 
-    // for (const x of chunk.blockdata) {
-    //   for (const y of x) {
-    //     for (const block of y) {
-    //       block.mesh.position.x = Math.floor(Math.random() * 16);
-    //       block.mesh.position.y = Math.floor(Math.random() * 256);
-    //       block.mesh.position.z = Math.floor(Math.random() * 16);
-    //       this.scene.add(block.mesh);
-    //     }
-    //   }
-    // }
-
-    for (const block of chunk.blocks) {
-      this.scene.add(block.mesh);
+    for (const x of chunk.blocks) {
+      for (const y of x) {
+        for (const block of y) {
+          if (block) {
+            block.mesh.position.x = Math.floor(Math.random() * 16);
+            block.mesh.position.y = Math.floor(Math.random() * 256);
+            block.mesh.position.z = Math.floor(Math.random() * 16);
+            this.scene.add(block.mesh);
+          }
+        }
+      }
     }
+
+    // for (const block of chunk.blocks) {
+    //   this.scene.add(block.mesh);
+    // }
 
     console.log('rendered')
 

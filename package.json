@@ -21,6 +21,7 @@
     "@angular/router": "~11.2.10",
     "@types/three": "^0.130.0",
     "dat.gui": "^0.7.7",
+    "noisejs": "^2.1.0",
     "perlin-noise": "0.0.1",
     "perlin-noise-3d": "^0.5.4",
     "rxjs": "~6.6.0",
