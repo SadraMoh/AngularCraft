@@ -12,6 +12,11 @@ export class Renderable {
     dispose(): void {
         this.engine.scene.remove(this.mesh);
         this.mesh.geometry.dispose();
+        this.isRendered = false;
+    }
+
+    render(): void {
+        this.isRendered = true;
     }
 
 }

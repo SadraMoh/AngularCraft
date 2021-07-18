@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GUI } from "dat.gui";
 import { EngineService } from './engine/engine.service';
 import { TerraingenService } from './engine/terraingen.service';
-import { Chunk, ChunkSize } from './models/chunk';
+import { Chunk, ChunkHeight, ChunkSize } from './models/chunk';
 import { Block } from './models/block';
 
 @Component({
@@ -25,13 +25,16 @@ export class AppComponent implements AfterViewInit {
     // Initialize Canvas
     this.engine.initCanvas(this.canvasRef.nativeElement);
 
-
-    for (let x = 0; x < 2; x++) {
-      for (let y = 0; y < 2; y++) {
-        const chunk = new Chunk(this.terraingen.GenerateSine(x,y), new THREE.Vector2(0, 0));
+    for (let x = 0; x < 1; x++) {
+      this.engine.world.push([]);
+      for (let y = 0; y < 1; y++) {
+        const chunk = new Chunk(this.terraingen.GenerateSine(x, y), new THREE.Vector2(0, 0), this.engine);
+        this.engine.world[x][y] = chunk;
         chunk.render();
       }
     }
+
+    console.log(this.engine.getBlock(0, ChunkHeight / 2, 0));
 
 
     // for (const block of ans) {

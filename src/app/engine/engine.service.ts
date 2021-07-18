@@ -23,7 +23,7 @@ export class EngineService {
    * @param x global coordination of X 
    * @param y global coordination of Y 
    * @param z global coordination of Z
-   * @returns The requested block if one is found, {@link null}  if no block was present at the specified location
+   * @returns The requested block if one is found, {@link undefined}  if no block was present at the specified location
    * @throws {@link TypeError} is thrown if the specified index out of range
    *  */
   getBlock(x: number, y: number, z: number): Block | null {
@@ -36,7 +36,11 @@ export class EngineService {
     const chunkY = Math.floor(y / ChunkSize);
     const blockY = y % ChunkSize;
 
-    return this.world[chunkX][chunkY].getBlock(blockX, blockY, z);
+    try {
+      return this.world[chunkX][chunkY].getBlock(blockX, blockY, z);
+    } catch (error) {
+      return null;
+    }
   }
 
   /**
@@ -86,8 +90,15 @@ export class EngineService {
 
     this.scene.background = new THREE.Color('lightblue');
 
-    this.sun.position.set(-1, 2, 4);
+    this.sun.position.set(32, 32, 32);
+    this.sun.castShadow = true;
     this.scene.add(this.sun);
+
+    const sunHelper = new THREE.DirectionalLightHelper(this.sun, 5);
+    this.scene.add(sunHelper)
+
+    // const cameraHelper = new THREE.CameraHelper(this.camera);
+    // this.scene.add(cameraHelper);
 
   }
 
@@ -186,31 +197,5 @@ export class EngineService {
     });
 
   }
-
-  renderChunk(chunk: Chunk) {
-
-    for (const x of chunk.blocks) {
-      for (const y of x) {
-        for (const block of y) {
-          if (block) {
-            block.mesh.position.x = Math.floor(Math.random() * 16);
-            block.mesh.position.y = Math.floor(Math.random() * 256);
-            block.mesh.position.z = Math.floor(Math.random() * 16);
-            this.scene.add(block.mesh);
-          }
-        }
-      }
-    }
-
-    // for (const block of chunk.blocks) {
-    //   this.scene.add(block.mesh);
-    // }
-
-    console.log('rendered')
-
-  }
-
-
-
 
 }

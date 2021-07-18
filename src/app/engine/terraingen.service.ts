@@ -67,7 +67,6 @@ export class TerraingenService {
 
         const n = (noise.simplex2(x, z) + 1) * 50
         const block = new Block(this.engine);
-        console.log(n);
         (<MeshStandardMaterial>block.mesh.material).color = new THREE.Color(n * 1118481);
         block.x = x;
         block.y = 0;
@@ -83,6 +82,9 @@ export class TerraingenService {
 
   GenerateSine(chunkX: number = 0, chunkZ: number = 0, amplitude = 2.5, altitude = ChunkSize / 2): Block[][][] | null[][][] {
 
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/star.png');
+
     const ans: Block[][][] | null[][][] = fillWithAir();
 
     const chunkXbegin = chunkX * ChunkSize;
@@ -90,25 +92,30 @@ export class TerraingenService {
     const chunkZbegin = chunkZ * ChunkSize;
     const chunkZend = (chunkZ + 1) * ChunkSize;
 
-    console.log({
-      chunkXbegin: chunkXbegin,
-      chunkXend: chunkXend,
-      chunkZbegin: chunkZbegin,
-      chunkZend: chunkZend,
-    })
+    // console.log({
+    //   chunkXbegin: chunkXbegin,
+    //   chunkXend: chunkXend,
+    //   chunkZbegin: chunkZbegin,
+    //   chunkZend: chunkZend,
+    // })
 
     let xCounter = 0
     for (let x = chunkXbegin; x < chunkXend; x++) {
       let zCounter = 0;
       for (let z = chunkZbegin; z < chunkZend; z++) {
-        const block = new Block(this.engine);
-        const y = Math.round((Math.sin(x / ChunkSize * Math.PI * 4) + Math.sin(z / ChunkSize * Math.PI * 6)) * amplitude + altitude);
 
-        block.x = x;
-        block.y = y;
-        block.z = z;
+        const height = Math.round((Math.sin(x / ChunkSize * Math.PI * 4) + Math.sin(z / ChunkSize * Math.PI * 6)) * amplitude + altitude);
 
-        ans[xCounter][y][zCounter] = block;
+        for (let y = 0; y < height; y++) {
+          const block = new Block(this.engine, texture);
+
+          block.x = x;
+          block.y = y;
+          block.z = z;
+
+          ans[xCounter][y][zCounter] = block;
+        }
+
         zCounter++
       }
       xCounter++
@@ -138,6 +145,9 @@ export class TerraingenService {
 
   GenerateMountany(chunkX: number, chunkZ: number): Block[] {
 
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/star.png');
+
     const ans: Block[] = [];
 
     for (let y = 0; y < ChunkSize; ++y) {
@@ -151,7 +161,8 @@ export class TerraingenService {
               z * ChunkSize +
               x;
 
-            ans.push(new Block(this.engine, new THREE.MeshPhongMaterial({ color: 0x118833 })))
+            // ans.push(new Block(this.engine, new THREE.MeshPhongMaterial({ color: 0x118833 })))
+            ans.push(new Block(this.engine, texture))
 
           }
 
