@@ -1,6 +1,6 @@
 import { Vector, Vector2 } from "three";
 import { EngineService } from "../engine/engine.service";
-import { Block } from "./block";
+import { Block, CubeSide } from "./block";
 
 export const ChunkSize = 16 // 16;
 export const ChunkHeight = ChunkSize;
@@ -74,10 +74,6 @@ export class Chunk {
      */
     render(): void {
 
-        const positions = [];
-        const normals = [];
-        const indices = [];
-
         // Find which voxels and indices need to be rendered
         for (let x = 0; x < ChunkSize; x++) {
             for (let y = 0; y < ChunkHeight; y++) {
@@ -88,33 +84,30 @@ export class Chunk {
                     const block = this.blocks[x][y][z];
                     if (!block) continue; // ignore if air
 
-                    for (const { dir, corners } of block.faces) {
+                    const sidesToRender: number[] = [];
+                    // Cycle through all the faces of the block and find which sides have neighbours
+                    for (const { dir, corners, indx } of Block.faces) {
                         const neighbor = this.engine.getBlock(
-                            x * ChunkSize + dir[0],
-                            y + dir[1],
-                            z * ChunkSize + dir[2]);
+                            block.x + dir[0],
+                            block.y + dir[1],
+                            block.z + dir[2]);
 
                         if (!neighbor) {
-                            // this voxel has no neighbor in this direction so we need a face
-                            // here.
-                            const ndx = positions.length / 3;
-                            for (const pos of corners) {
-                                positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
-                                normals.push(...dir);
-                            }
-                            indices.push(
-                                ndx, ndx + 1, ndx + 2,
-                                ndx + 2, ndx + 1, ndx + 3,
-                            );
+
+                            // Render this face
+                            sidesToRender.push(...indx);
+
                         }
                     }
+
+                    block.render(sidesToRender);
 
                 }
             }
         }
 
         // Render geometry
-        
+
     }
 
     /**
@@ -145,4 +138,37 @@ export enum ChunkType {
  */
 export function fillWithAir(): null[][][] | Block[][][] {
     return Array.from({ length: ChunkSize }, () => Array.from({ length: ChunkHeight }, () => Array.from({ length: ChunkSize }))) as Block[][][]
+}
+
+/**
+  * Convert a blocks global coordinations to its local position within its chunk
+  * @param blockX The blocks global X coordination
+  * @param blockZ The blocks global Z coordination
+  * @returns Local coordinations of the block as `{ x, z }`
+  *  */
+export function globalToLocal(blockX: number, blockZ: number): { blockX: number, blockZ: number } {
+
+    blockX = blockX % ChunkSize;
+
+    blockZ = blockZ % ChunkSize;
+
+    return { blockX: blockX, blockZ: blockZ }
+
+}
+
+/**
+  * Convert a blocks global coordinations to its local position within its chunk
+  * @param blockX The blocks local X coordination within its chunk
+  * @param blockZ The blocks local Z coordination within its chunk
+  * 
+  * @returns Global coordinations of the block as `{ x, z }`
+  *  */
+export function localToGlobal(blockX: number, blockZ: number, chunkX: number, chunkZ: number): { blockX: number, blockZ: number } {
+
+    blockX = (chunkX * ChunkSize) + blockX;
+
+    blockZ = (chunkZ * ChunkSize) + blockZ;
+
+    return { blockX: blockX, blockZ: blockZ }
+
 }

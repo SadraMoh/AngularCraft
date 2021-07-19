@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Block } from '../models/block';
-import { Chunk, ChunkHeight, ChunkSize } from '../models/chunk';
+import { Chunk, ChunkHeight, ChunkSize, globalToLocal } from '../models/chunk';
 import { Renderable } from '../models/renderable';
 
 @Injectable({
@@ -30,15 +30,16 @@ export class EngineService {
 
     // integer division of X
     const chunkX = Math.floor(x / ChunkSize);
-    const blockX = x % ChunkSize;
 
     // ingeter division of Y
-    const chunkY = Math.floor(y / ChunkSize);
-    const blockY = y % ChunkSize;
+    const chunkZ = Math.floor(z / ChunkSize);
+
+    const { blockX, blockZ } = globalToLocal(x, z);
 
     try {
-      return this.world[chunkX][chunkY].getBlock(blockX, blockY, z);
-    } catch (error) {
+      return this.world[chunkX][chunkZ].getBlock(blockX, y, blockZ);
+    }
+    catch (error) {
       return null;
     }
   }
@@ -84,6 +85,7 @@ export class EngineService {
   public sun: THREE.DirectionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
 
   public initCanvas(canvas: HTMLCanvasElement) {
+
     this.canvas = canvas;
     this.canvasInitialized();
     this.canvasViewInit.emit(this.canvas);
@@ -127,6 +129,18 @@ export class EngineService {
       canvas: this.canvas
     })
 
+    this.canvas.requestPointerLock();
+    this.canvas.addEventListener('click', (i => {
+      if (document.pointerLockElement === this.canvas) {
+        console.log('lock')
+        this.canvas.requestPointerLock();
+      } else {
+        console.log('unlock')
+        document.exitPointerLock();
+      }
+
+    }));
+
     this.renderer.setSize(this.width, this.height)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -134,7 +148,8 @@ export class EngineService {
     this.camera.position.x = 0
     this.camera.position.y = 10
     this.camera.position.z = 2
-    this.camera.rotateX(Math.PI / -8)
+
+
     this.scene.add(this.camera)
 
 
@@ -145,11 +160,11 @@ export class EngineService {
     // flyControls.movementSpeed = 25;
     // flyControls.rollSpeed = 1;
 
-    const controls = new OrbitControls(this.camera, this.canvas);
-    // target should be at the center of the scene
-    controls.target.set(ChunkSize / 2, ChunkSize / 4, ChunkSize / 2);
-    controls.zoomSpeed = 4;
-    controls.update();
+    // const controls = new OrbitControls(this.camera, this.canvas);
+    // // target should be at the center of the scene
+    // controls.target.set(ChunkSize / 2, ChunkSize / 4, ChunkSize / 2);
+    // controls.zoomSpeed = 4;
+    // controls.update();
 
     // start timer
     this.clock.start();
@@ -169,7 +184,7 @@ export class EngineService {
 
       // Update controls
       // flyControls.update(0.01);
-      controls.update();
+      // controls.update();
 
 
       // Render

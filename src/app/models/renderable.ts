@@ -15,8 +15,4 @@ export class Renderable {
         this.isRendered = false;
     }
 
-    render(): void {
-        this.isRendered = true;
-    }
-
 }

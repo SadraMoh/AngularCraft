@@ -3,12 +3,15 @@ import { EngineService } from "../engine/engine.service";
 import { Chunk } from "./chunk";
 import { Renderable } from "./renderable";
 
+export let count = 0;
+
 export class Block extends Renderable {
 
     name: string = 'block';
-    uuid: string = '';
+    id: number = 0;
 
     chunk!: Chunk | undefined;
+
 
     //#region Position
 
@@ -57,8 +60,12 @@ export class Block extends Renderable {
 
     public texture: THREE.Texture;
 
+    public color: number = 0x88FF88;
+
     constructor(protected engine: EngineService, texture: THREE.Texture = new THREE.Texture()) {
         super(engine);
+
+        this.id = count++;
 
         this.texture = texture;
 
@@ -73,14 +80,17 @@ export class Block extends Renderable {
 
     /**
      * Render this block to the scene
+     * 
+     * @param sideIndexes The indexes of verteces related to one side of the cube
      */
-    render(): void {
+    render(sideIndexes: number[]): void {
 
-        this.material = new THREE.MeshPhongMaterial({ color: 0x88FF88, map: this.texture });
+        this.material = new THREE.MeshPhongMaterial({ color: this.color, map: this.texture });
+        this.material.side = THREE.FrontSide;
 
         const geometry = new THREE.BufferGeometry();
 
-        const numVertices = this.vertices.length;
+        const numVertices = Block.vertices.length;
         const positionNumComponents = 3;
         const normalNumComponents = 3;
         const uvNumComponents = 2;
@@ -91,7 +101,7 @@ export class Block extends Renderable {
         let nrmNdx = 0;
         let uvNdx = 0;
 
-        for (const vertex of this.vertices) {
+        for (const vertex of Block.vertices) {
             positions.set(vertex.pos, posNdx);
             normals.set(vertex.nor, nrmNdx);
             uvs.set(vertex.uv, uvNdx);
@@ -110,14 +120,17 @@ export class Block extends Renderable {
             'uv',
             new THREE.BufferAttribute(uvs, uvNumComponents));
 
-        geometry.setIndex([
-            0, 1, 2, 2, 1, 3,        // front
-            4, 5, 6, 6, 5, 7,        // right
-            8, 9, 10, 10, 9, 11,     // back
-            12, 13, 14, 14, 13, 15,  // left
-            16, 17, 18, 18, 17, 19,  // top
-            20, 21, 22, 22, 21, 23,  // bottom
-        ]);
+
+        geometry.setIndex(sideIndexes);
+
+        // geometry.setIndex([
+        //     0, 1, 2, 2, 1, 3,        // front
+        //     4, 5, 6, 6, 5, 7,        // right
+        //     8, 9, 10, 10, 9, 11,     // back
+        //     12, 13, 14, 14, 13, 15,  // left
+        //     16, 17, 18, 18, 17, 19,  // top
+        //     20, 21, 22, 22, 21, 23,  // bottom
+        // ]);
 
         this.geometry = geometry;
         this.geometry.scale(0.5, 0.5, 0.5)
@@ -132,7 +145,7 @@ export class Block extends Renderable {
         this.engine.scene.remove(this.mesh);
     }
 
-    readonly vertices: CubeVertex[] = [
+    public static readonly vertices: CubeVertex[] = [
         // front
         { pos: [-1, -1, 1], nor: [0, 0, 1], uv: [0, 0], },    // 0
         { pos: [1, -1, 1], nor: [0, 0, 1], uv: [1, 0], },     // 1
@@ -171,61 +184,73 @@ export class Block extends Renderable {
         { pos: [-1, -1, -1], nor: [0, -1, 0], uv: [1, 1], },  // 23
     ];
 
-    readonly faces: CubeFace[] = [
+    // front
+    // right
+    // back
+    // left
+    // top
+    // bottom
+    public static readonly faces: CubeFace[] = [
+        { // front
+            dir: [0, 0, 1,],
+            indx: [0, 1, 2, 2, 1, 3],
+            corners: [
+                [0, 0, 1],
+                [1, 0, 1],
+                [0, 1, 1],
+                [1, 1, 1],
+            ],
+        },
+        { // right
+            dir: [1, 0, 0,],
+            indx: [4, 5, 6, 6, 5, 7],
+            corners: [
+                [1, 1, 1],
+                [1, 0, 1],
+                [1, 1, 0],
+                [1, 0, 0],
+            ],
+        },
+        { // back
+            dir: [0, 0, -1,],
+            indx: [8, 9, 10, 10, 9, 11],
+            corners: [
+                [1, 0, 0],
+                [0, 0, 0],
+                [1, 1, 0],
+                [0, 1, 0],
+            ],
+        },
         { // left
-            dir: [ -1,  0,  0, ],
+            dir: [-1, 0, 0,],
+            indx: [12, 13, 14, 14, 13, 15],
             corners: [
-              [ 0, 1, 0 ],
-              [ 0, 0, 0 ],
-              [ 0, 1, 1 ],
-              [ 0, 0, 1 ],
+                [0, 1, 0],
+                [0, 0, 0],
+                [0, 1, 1],
+                [0, 0, 1],
             ],
-          },
-          { // right
-            dir: [  1,  0,  0, ],
+        },
+        { // top
+            dir: [0, 1, 0,],
+            indx: [16, 17, 18, 18, 17, 19],
             corners: [
-              [ 1, 1, 1 ],
-              [ 1, 0, 1 ],
-              [ 1, 1, 0 ],
-              [ 1, 0, 0 ],
+                [0, 1, 1],
+                [1, 1, 1],
+                [0, 1, 0],
+                [1, 1, 0],
             ],
-          },
-          { // bottom
-            dir: [  0, -1,  0, ],
+        },
+        { // bottom
+            dir: [0, -1, 0,],
+            indx: [20, 21, 22, 22, 21, 23],
             corners: [
-              [ 1, 0, 1 ],
-              [ 0, 0, 1 ],
-              [ 1, 0, 0 ],
-              [ 0, 0, 0 ],
+                [1, 0, 1],
+                [0, 0, 1],
+                [1, 0, 0],
+                [0, 0, 0],
             ],
-          },
-          { // top
-            dir: [  0,  1,  0, ],
-            corners: [
-              [ 0, 1, 1 ],
-              [ 1, 1, 1 ],
-              [ 0, 1, 0 ],
-              [ 1, 1, 0 ],
-            ],
-          },
-          { // back
-            dir: [  0,  0, -1, ],
-            corners: [
-              [ 1, 0, 0 ],
-              [ 0, 0, 0 ],
-              [ 1, 1, 0 ],
-              [ 0, 1, 0 ],
-            ],
-          },
-          { // front
-            dir: [  0,  0,  1, ],
-            corners: [
-              [ 0, 0, 1 ],
-              [ 1, 0, 1 ],
-              [ 0, 1, 1 ],
-              [ 1, 1, 1 ],
-            ],
-          },
+        },
     ];
 
 }
@@ -245,6 +270,18 @@ export interface CubeFace {
 
     dir: [number, number, number]
 
+    /** The indexes of this sides verteces, this will be passed into the {@link Block.render} function */
+    indx: [number, number, number, number, number, number]
+
     corners: [[number, number, number], [number, number, number], [number, number, number], [number, number, number]]
 
+}
+
+export enum CubeSide {
+    left = 1,
+    right = 2,
+    bottom = 4,
+    top = 8,
+    back = 16,
+    front = 32,
 }

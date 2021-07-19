@@ -5,6 +5,7 @@ import { EngineService } from './engine/engine.service';
 import { TerraingenService } from './engine/terraingen.service';
 import { Chunk, ChunkHeight, ChunkSize } from './models/chunk';
 import { Block } from './models/block';
+import { PlayerService } from './player/player.service';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('canvasRef')
   public readonly canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  constructor(private engine: EngineService, private terraingen: TerraingenService) {
+  constructor(private engine: EngineService, private terraingen: TerraingenService, private player: PlayerService) {
 
   }
 
@@ -25,16 +26,25 @@ export class AppComponent implements AfterViewInit {
     // Initialize Canvas
     this.engine.initCanvas(this.canvasRef.nativeElement);
 
-    for (let x = 0; x < 1; x++) {
+    const worldX = 1;
+    const worldY = 1;
+
+    // Load world data and shapes (App initialization point)
+    for (let x = 0; x < worldX; x++) {
       this.engine.world.push([]);
-      for (let y = 0; y < 1; y++) {
+      for (let y = 0; y < worldY; y++) {
         const chunk = new Chunk(this.terraingen.GenerateSine(x, y), new THREE.Vector2(0, 0), this.engine);
         this.engine.world[x][y] = chunk;
-        chunk.render();
       }
     }
 
-    console.log(this.engine.getBlock(0, ChunkHeight / 2, 0));
+    // Render world (This would probably be run by an event listener when the player moves)
+    for (let x = 0; x < worldX; x++) {
+      this.engine.world.push([]);
+      for (let y = 0; y < worldY; y++) {
+        this.engine.world[x][y].render();
+      }
+    }
 
 
     // for (const block of ans) {
