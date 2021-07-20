@@ -4,9 +4,11 @@ import { fromEvent, Observable } from 'rxjs';
 import * as THREE from 'three';
 import { FlyControls } from 'three/examples/jsm/controls/FlyControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls';
 import { Block } from '../models/block';
 import { Chunk, ChunkHeight, ChunkSize, globalToLocal } from '../models/chunk';
 import { Renderable } from '../models/renderable';
+import * as AMMMO from 'ammo.js';
 
 @Injectable({
   providedIn: 'root'
@@ -129,26 +131,14 @@ export class EngineService {
       canvas: this.canvas
     })
 
-    this.canvas.requestPointerLock();
-    this.canvas.addEventListener('click', (i => {
-      if (document.pointerLockElement === this.canvas) {
-        console.log('lock')
-        this.canvas.requestPointerLock();
-      } else {
-        console.log('unlock')
-        document.exitPointerLock();
-      }
 
-    }));
+
+    // add event listener to show/hide a UI (e.g. the game's menu)
 
     this.renderer.setSize(this.width, this.height)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     this.camera = new THREE.PerspectiveCamera(75, this.width / this.height, 0.1, 100)
-    this.camera.position.x = 0
-    this.camera.position.y = 10
-    this.camera.position.z = 2
-
 
     this.scene.add(this.camera)
 
@@ -185,7 +175,6 @@ export class EngineService {
       // Update controls
       // flyControls.update(0.01);
       // controls.update();
-
 
       // Render
       this.renderer.render(this.scene, this.camera)

@@ -22,52 +22,39 @@ export class PlayerService {
 
   isPointerLocked = false;
 
-  initial!: Vector3
-
   constructor(public engine: EngineService) {
 
     this.engine.canvasViewInit.subscribe(i => {
 
-      this.initial = this.engine.camera.rotation.toVector3();
-
-      this.engine.scene.add(this.player);
-
+      this.player.position.set(0, 16, 0);
       this.engine.camera.parent = this.player;
+      this.engine.scene.add(this.player);
 
       this.keydown$ = fromEvent(window, 'keydown') as Observable<KeyboardEvent>;
       this.keyup$ = fromEvent(window, 'keyup') as Observable<KeyboardEvent>;
       this.mousemove$ = fromEvent(window, 'mousemove') as Observable<MouseEvent>;
 
 
+
       //#region Pointer Lock
 
-      const lookAroundSub: Subscription[] = [];
-
-      (fromEvent(this.engine.canvas, 'click') as Observable<MouseEvent>).subscribe(i => {
-        if (this.isPointerLocked) {
-          // unlock
-          document.exitPointerLock();
-          lookAroundSub.forEach(i => i.unsubscribe());
-        }
-        else {
-          // lock
-          this.engine.canvas.requestPointerLock();
-          lookAroundSub.push((fromEvent(this.engine.canvas, 'mousemove') as Observable<MouseEvent>).subscribe(i => this.lookAround(i)));
-        }
-      });
-
-      (fromEvent(document, 'pointerlockchange')).subscribe(i => {
+      (fromEvent(this.engine.canvas, 'click') as Observable<MouseEvent>).subscribe(_ => {
         this.isPointerLocked = document.pointerLockElement === this.engine.canvas;
-        if (!this.isPointerLocked)
-          lookAroundSub.forEach(i => i.unsubscribe());
+        if (!this.isPointerLocked) {
+          this.engine.canvas.requestPointerLock();
+        }
       });
+
+      // #USEFUL triggered when the pointerLock has changed
+      // (fromEvent(document, 'pointerlockchange')).subscribe(i => {
+      //   console.log('isPointerLocked', this.isPointerLocked)
+      // });
 
       //#endregion
 
 
-
       this.mousemove$.subscribe((arg) => {
-
+        this.lookAround(arg)
       });
 
       this.keydown$.subscribe((arg) => {
@@ -92,23 +79,51 @@ export class PlayerService {
   readonly sneakingSpeed: number = 1.295;
   readonly flyingSpeed: number = 10.89;
 
-
+  readonly rotationConstant = 720;
 
   lookAround(event: MouseEvent): void {
 
-    const quaternionAroundY = new THREE.Quaternion();
-    quaternionAroundY.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI * event.movementX / -720);
+    const angleOfRotationAroundY = Math.PI * event.movementX / this.rotationConstant;
 
-    this.engine.camera.applyQuaternion(quaternionAroundY)
+    this.engine.camera.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -angleOfRotationAroundY);
 
-    const quaternionAroundX = new THREE.Quaternion();
-    quaternionAroundX.setFromAxisAngle(this.initial, Math.PI * event.movementX / -720);
+    const angleOfRotationAroundX = Math.PI * event.movementY / this.rotationConstant;
 
-    this.engine.camera.applyQuaternion(quaternionAroundX)
+    this.engine.camera.rotateOnAxis(new Vector3(1, 0, 0), -angleOfRotationAroundX)
 
   }
 
   keydown(event: KeyboardEvent): void {
+
+    /** Facing direction */
+    let direction = new THREE.Vector3();
+    this.engine.camera.getWorldDirection(direction);
+    direction.y = 0;
+
+    if (event.key === 'w') {
+
+      this.player.position.add(direction.multiplyScalar(1));
+    }
+
+    if (event.key === 's') {
+      this.player.position.sub(direction.multiplyScalar(1));
+    }
+
+    if (event.key === 'd') {
+
+      // Rotate facing direction around y axis
+      direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+
+      this.player.position.sub(direction.multiplyScalar(1));
+    }
+
+    if (event.key === 'a') {
+
+      // Rotate facing direction around y axis
+      direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / -2);
+
+      this.player.position.sub(direction.multiplyScalar(1));
+    }
 
   }
 
